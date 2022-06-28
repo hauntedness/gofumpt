@@ -30,6 +30,7 @@ import (
 	"golang.org/x/sync/semaphore"
 	exec "golang.org/x/sys/execabs"
 
+	"mvdan.cc/gofumpt/exp"
 	gformat "mvdan.cc/gofumpt/format"
 	"mvdan.cc/gofumpt/internal/diff"
 	"mvdan.cc/gofumpt/internal/version"
@@ -318,6 +319,7 @@ func processFile(filename string, info fs.FileInfo, in io.Reader, r *reporter, e
 	}
 
 	res, err := format(fileSet, file, sourceAdj, indentAdj, src, printer.Config{Mode: printerMode, Tabwidth: tabWidth})
+	res = exp.ApplyIf(res)
 	if err != nil {
 		return err
 	}

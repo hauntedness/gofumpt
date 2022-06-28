@@ -36,3 +36,28 @@ func f() {
 	qt.Assert(t, err, qt.IsNil)
 	qt.Assert(t, string(got), qt.Equals, string(want))
 }
+
+func TestIfErrStmt(t *testing.T) {
+	in := []byte(`
+package p
+import "error"
+func f() error {
+	var err error
+	if err != nil {
+		return err
+	}
+}`[1:])
+	want := []byte(`
+package p
+
+import "error"
+
+func f() error {
+	var err error
+	if err != nil { return err }
+}
+`[1:])
+	got, err := format.Source(in, format.Options{})
+	qt.Assert(t, err, qt.IsNil)
+	qt.Assert(t, string(got), qt.Equals, string(want))
+}

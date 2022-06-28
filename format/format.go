@@ -26,6 +26,7 @@ import (
 	"golang.org/x/mod/semver"
 	"golang.org/x/tools/go/ast/astutil"
 
+	"mvdan.cc/gofumpt/exp"
 	"mvdan.cc/gofumpt/internal/version"
 )
 
@@ -79,7 +80,8 @@ func Source(src []byte, opts Options) ([]byte, error) {
 	if err := format.Node(&buf, fset, file); err != nil {
 		return nil, err
 	}
-	return buf.Bytes(), nil
+	formated := buf.Bytes()
+	return exp.ApplyIf(formated), nil
 }
 
 // File modifies a file and fset in place to follow gofumpt's format. The
