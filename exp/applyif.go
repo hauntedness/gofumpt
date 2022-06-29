@@ -29,9 +29,7 @@ var returnInBytes = []byte{'r', 'e', 't', 'u', 'r', 'n'}
 
 /*
 given:
-if err != nil {
-	return xxxx
-}
+if err != nil { return xxxx }
 output:
 if err != nil {	return xxxx }
 */
@@ -118,7 +116,7 @@ loop:
 				status = undefined
 			}
 		case indentAfterReturn, expOfReturn:
-			if v == '{' {
+			if v == '{' || v == '/' {
 				status = undefined
 			} else if v == '\n' {
 				status = lineAfteKeyWordReturn
@@ -137,9 +135,9 @@ loop:
 			}
 		case rBrace:
 			// todo handle { return    errors.WithMessage(err,"{sss}"   )   }
-			var runei = rune(v)
+			runei := rune(v)
 			fmt.Println(runei)
-			var runei1 = rune(src[i+1])
+			runei1 := rune(src[i+1])
 			fmt.Println(runei1)
 			if v == '\n' {
 				src[start] = ' '
