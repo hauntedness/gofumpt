@@ -43,9 +43,8 @@ package p
 import "error"
 func f() error {
 	var err error
-	if err != nil {
-		return err
-	}
+	if err != nil { return err }
+	return nil
 }`[1:])
 	want := []byte(`
 package p
@@ -55,6 +54,7 @@ import "error"
 func f() error {
 	var err error
 	if err != nil { return err }
+	return nil
 }
 `[1:])
 	got, err := format.Source(in, format.Options{})
