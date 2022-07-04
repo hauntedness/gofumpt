@@ -53,18 +53,27 @@ loop:
 				status = indentAfterLine1
 			} else if src[i] == 'i' && i+1 < len(src) && src[i+1] == 'f' {
 				status = keyWordIfStart
+			} else if v == '\n' {
+				status = undefined
+				continue loop
 			} else {
 				status = undefined
 			}
 		case keyWordIfStart:
 			if src[i] == 'f' {
 				status = keyWordIfEnd
+			} else if v == '\n' {
+				status = undefined
+				continue loop
 			} else {
 				status = undefined
 			}
 		case keyWordIfEnd:
 			if isIndent(v) {
 				status = indentAfterIf
+			} else if v == '\n' {
+				status = undefined
+				continue loop
 			} else {
 				status = undefined
 			}
@@ -73,6 +82,7 @@ loop:
 				status = indentAfterIf
 			} else if v == '\n' {
 				status = undefined
+				continue loop
 			} else if v == '{' {
 				status = lBrace
 			} else {
@@ -83,7 +93,10 @@ loop:
 			// this way we can't fail fast, but this kinds of code are really rare to see
 			// if nil == func(i int) int {return i} {...}
 			// if struct{}{} == struct{}{} {...}
-			if v == '\n' || v == '}' {
+			if v == '\n' {
+				status = undefined
+				continue loop
+			} else if v == '}' {
 				status = undefined
 			} else if v == '{' {
 				status = lBrace
@@ -106,6 +119,8 @@ loop:
 				continue loop
 			} else {
 				status = undefined
+				i = start
+				continue loop
 			}
 		case keyWordReturn:
 			if v == '\n' {
@@ -114,10 +129,14 @@ loop:
 				status = indentAfterReturn
 			} else {
 				status = undefined
+				i = start
+				continue loop
 			}
 		case indentAfterReturn, expOfReturn:
 			if v == '{' || v == '/' {
 				status = undefined
+				i = start
+				continue loop
 			} else if v == '\n' {
 				status = lineAfteKeyWordReturn
 			} else if v == '}' {
@@ -132,6 +151,8 @@ loop:
 				status = rBrace
 			} else {
 				status = undefined
+				i = start
+				continue loop
 			}
 		case rBrace:
 			// todo handle { return    errors.WithMessage(err,"{sss}"   )   }
@@ -158,12 +179,18 @@ loop:
 						break
 					}
 				}
-				status = 0
+				status = undefined
+				continue loop
 			} else {
 				status = undefined
+				i = start
+				continue loop
 			}
 		default:
 			status = undefined
+			if v == '\n' {
+				continue loop
+			}
 		}
 		i++
 	}

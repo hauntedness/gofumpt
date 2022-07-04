@@ -9,13 +9,13 @@ func test() error {
 
 	if err != nil {
 		if err != nil {
-			if err != nil { return errors.WithMessage(err, "") }
+			if err != nil { return errors.Wrap(err, "") }
 			return errors.WithMessage(err, "")
 		}
 		if err != nil { return errors.WithMessage(err, "") }
 	}
 	if err != nil {
-		return errors.WithMessage(err, "") //
+		return errors.Wrap(err, "") //
 	}
 	return nil
 }
