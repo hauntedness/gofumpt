@@ -2,7 +2,6 @@ package exp
 
 import (
 	"bytes"
-	"fmt"
 )
 
 const (
@@ -19,13 +18,13 @@ const (
 	keyWordReturn
 	indentAfterReturn
 	expOfReturn
-	lineAfteKeyWordReturn
+	lineAfterKeyWordReturn
 	indentAfterLine3
 	rBrace
 	line4
 )
 
-var returnInBytes = []byte{'r', 'e', 't', 'u', 'r', 'n'}
+var returnInBytes = []byte("return")
 
 /*
 given:
@@ -37,6 +36,7 @@ func ApplyIf(src []byte) []byte {
 	// { return xxxx }
 	status := undefined
 	start := 0
+	exp_start_position := 0
 loop:
 	for i := 0; i < len(src); {
 		v := src[i]
@@ -71,6 +71,7 @@ loop:
 		case keyWordIfEnd:
 			if isIndent(v) {
 				status = indentAfterIf
+				exp_start_position = i
 			} else if v == '\n' {
 				status = undefined
 				continue loop
@@ -96,8 +97,9 @@ loop:
 			if v == '\n' {
 				status = undefined
 				continue loop
-			} else if v == '}' {
+			} else if v == '}' || v == '|' || v == '&' || v == ';' || i-exp_start_position > 13 {
 				status = undefined
+				exp_start_position = 0
 			} else if v == '{' {
 				status = lBrace
 			} else {
@@ -113,7 +115,7 @@ loop:
 		case lineAfterLBrace, indentAfterLine2:
 			if isIndent(v) {
 				status = indentAfterLine2
-			} else if v == 'r' && i+6 < len(src) && bytes.Compare(returnInBytes, src[i:i+6]) == 0 {
+			} else if v == 'r' && i+6 < len(src) && bytes.Equal(returnInBytes, src[i:i+6]) {
 				i = i + 6
 				status = keyWordReturn
 				continue loop
@@ -124,7 +126,7 @@ loop:
 			}
 		case keyWordReturn:
 			if v == '\n' {
-				status = lineAfteKeyWordReturn
+				status = lineAfterKeyWordReturn
 			} else if isIndent(v) {
 				status = indentAfterReturn
 			} else {
@@ -133,18 +135,19 @@ loop:
 				continue loop
 			}
 		case indentAfterReturn, expOfReturn:
-			if v == '{' || v == '/' {
+			// i == len(src) in case there is array boundary overflow of src[i+1]
+			if v == '{' || v == '(' || i == len(src) || (v == '/' && src[i+1] == '/') {
 				status = undefined
 				i = start
 				continue loop
 			} else if v == '\n' {
-				status = lineAfteKeyWordReturn
+				status = lineAfterKeyWordReturn
 			} else if v == '}' {
 				status = rBrace
 			} else {
 				status = expOfReturn
 			}
-		case lineAfteKeyWordReturn, indentAfterLine3:
+		case lineAfterKeyWordReturn, indentAfterLine3:
 			if isIndent(v) {
 				status = indentAfterLine3
 			} else if v == '}' {
@@ -155,11 +158,7 @@ loop:
 				continue loop
 			}
 		case rBrace:
-			// todo handle { return    errors.WithMessage(err,"{sss}"   )   }
-			runei := rune(v)
-			fmt.Println(runei)
-			runei1 := rune(src[i+1])
-			fmt.Println(runei1)
+			// todo handle { return errors.WithMessage(err,"{sss}") }
 			if v == '\n' {
 				src[start] = ' '
 				for k := start + 1; k < i; k++ {
